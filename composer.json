@@ -1,0 +1,30 @@
+{
+    "name": "kijtra/scraper",
+    "description": "Simple Scraping library",
+    "type": "library",
+    "keywords": ["PHP", "Scraping"],
+    "homepage": "https://github.com/kijtra/scraper",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "kijtra",
+            "email": "kijtra@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3",
+        "ext-sqlite3": "*",
+        "symfony/dom-crawler": "^3.0",
+        "symfony/css-selector": "^3.0",
+        "phpoffice/phpexcel": "^1.8",
+        "smalot/pdfparser": "^0.9.25"
+    },
+    "suggest": {
+        "kijtra/scraper": "Simple Scraping library"
+    },
+    "autoload": {
+        "psr-4": {
+            "Kijtra\\": "src/"
+        }
+    }
+}
