@@ -62,15 +62,17 @@ class Scraper
             if (!empty($contents[$url])) {
                 $callback = $container->getCallback();
                 if (is_callable($callback)) {
+                    $content = file_get_contents($contents[$url]);
+                    // unlink($contents[$url]);
                     try {
-                        if ($binder = $container->getBinder($contents[$url])) {
+                        if ($binder = $container->getBinder($content)) {
                             $callback = $callback->bindTo($binder);
                         }
                     } catch(\Exception $e) {
                         throw $e;
                     }
 
-                    $callback($contents[$url]);
+                    $callback($content);
                 }
             }
         }
