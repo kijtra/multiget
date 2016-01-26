@@ -28,11 +28,14 @@ class MultiRequest
 
     private $tempFiles = array();
 
+    private $config;
     private $logger;
     private $errors;
 
-    public function __construct($logger = null, $errors = null)
+    public function __construct($config, $logger = null, $errors = null)
     {
+        $this->config = $config;
+
         if (!empty($logger) && $logger instanceof Logger) {
             $this->logger = $logger;
         }
@@ -69,7 +72,7 @@ class MultiRequest
             }
         }
 
-        $dir = rtrim(sys_get_temp_dir(), '/\\').DIRECTORY_SEPARATOR;
+        $dir = $this->config->get('temp_dir');
 
         $mh = curl_multi_init();
         $chs = $fps = $temps = array();

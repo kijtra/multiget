@@ -1,6 +1,7 @@
 <?php
 namespace Kijtra;
 
+use Kijtra\Scraper\Config;
 use Kijtra\Scraper\Logger;
 use Kijtra\Scraper\Errors;
 use Kijtra\Scraper\Urls;
@@ -8,9 +9,11 @@ use Kijtra\Scraper\MultiRequest;
 
 class Scraper
 {
-    private $config = array(
-        'user_agent' => 'Mozilla',
-    );
+    // private $config = array(
+    //     'user_agent' => 'Mozilla',
+    // );
+
+    private $config;
     private $logger;
     private $errors;
     private $container = array();
@@ -18,7 +21,9 @@ class Scraper
     public function __construct()
     {
         foreach(func_get_args() as $arg) {
-            if ($arg instanceof Logger && null === $this->logger) {
+            if ($arg instanceof Config && null === $this->config) {
+                $this->config = $arg;
+            } elseif ($arg instanceof Logger && null === $this->logger) {
                 $this->logger = $arg;
             } elseif ($arg instanceof Errors && null === $this->errors) {
                 $this->errors = $arg;
@@ -49,10 +54,11 @@ class Scraper
         }
 
         $request = new MultiRequest(
+            $this->config,
             $this->logger,
             $this->errors
         );
-        $request->setUserAgent($this->config['user_agent']);
+        $request->setUserAgent($this->config->get('user_agent'));
 
         // TODO: Loggerが有効でも強制的に読み込みたい場合に備えてcontainerを渡すべき？
         $contents = $request->getContents($urls);
@@ -72,7 +78,7 @@ class Scraper
                         throw $e;
                     }
 
-                    $callback($content);
+                    $callback($content, $contents[$url]);
                 }
             }
         }
