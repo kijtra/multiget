@@ -7,9 +7,11 @@ class Config
         'user_agent' => 'Mozilla',
     );
 
-    public function __construct(array $config)
+    public function __construct(array $config = null)
     {
-        $this->config = array_replace($this->config, $config);
+        if (!empty($config)) {
+            $this->config = array_replace($this->config, $config);
+        }
 
         if (empty($config['temp_dir']) || !($dir = realpath($config['temp_dir']))) {
             $config['temp_dir'] = rtrim(sys_get_temp_dir(), '/\\').DIRECTORY_SEPARATOR;

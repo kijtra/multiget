@@ -1,9 +1,6 @@
 <?php
 namespace Kijtra;
 
-use Kijtra\Scraper\Config;
-use Kijtra\Scraper\Logger;
-use Kijtra\Scraper\Errors;
 use Kijtra\Scraper\Urls;
 use Kijtra\Scraper\MultiRequest;
 
@@ -21,13 +18,17 @@ class Scraper
     public function __construct()
     {
         foreach(func_get_args() as $arg) {
-            if ($arg instanceof Config && null === $this->config) {
+            if ($arg instanceof Scraper\Config && null === $this->config) {
                 $this->config = $arg;
-            } elseif ($arg instanceof Logger && null === $this->logger) {
+            } elseif ($arg instanceof Scraper\Logger && null === $this->logger) {
                 $this->logger = $arg;
-            } elseif ($arg instanceof Errors && null === $this->errors) {
+            } elseif ($arg instanceof Scraper\Errors && null === $this->errors) {
                 $this->errors = $arg;
             }
+        }
+
+        if (empty($this->config)) {
+            $this->config = new Scraper\Config();
         }
     }
 
