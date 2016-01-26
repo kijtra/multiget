@@ -16,7 +16,7 @@ class MultiRequest
     );
 
     private $optionsGetContent = array(
-        CURLOPT_RETURNTRANSFER => true,
+        // CURLOPT_RETURNTRANSFER => true,
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_HEADER => false,
@@ -25,6 +25,8 @@ class MultiRequest
         CURLOPT_FRESH_CONNECT => true,
         CURLOPT_TIMEOUT => 10
     );
+
+    private $tempFiles = array();
 
     private $logger;
     private $errors;
@@ -67,11 +69,46 @@ class MultiRequest
             }
         }
 
-        $contents = array();
-        $this->doRequest($urls, $this->optionsGetContent, function($urlKey, $url, $ch) use(&$contents) {
-            $content = curl_multi_getcontent($ch);
-            $contents[$url] = $content;
-        });
+        $dir = rtrim(sys_get_temp_dir(), '/\\').DIRECTORY_SEPARATOR;
+
+        $mh = curl_multi_init();
+        $chs = $fps = $temps = array();
+        foreach ($urls as $urlKey => $url) {
+            $ch = curl_init($url);
+            $tmp = tempnam($dir, basename($url));
+            $fp = fopen($tmp, 'w');
+            $options = $this->optionsGetContent;
+            $options[CURLOPT_FILE] = $fp;
+            curl_setopt_array($ch, $options);
+            curl_multi_add_handle($mh, $ch);
+            $chs[$urlKey] = $ch;
+            $fps[$urlKey] = $fp;
+            $temps[$urlKey] = $this->tempFiles[] = $tmp;
+        }
+
+        $running = null;
+        do {
+            curl_multi_exec($mh, $running);
+        } while($running > 0);
+
+        foreach($chs as $urlKey => $ch) {
+            $url = $urls[$urlKey];
+            $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            if (!preg_match('/\A[23]/', $code)) {
+                if (!empty($this->errors)) {
+                    $this->errors->add(new \Exception('"'.$code.'" Error at '.$url.'.'));
+                }
+                continue;
+            }
+
+            $contents[$url] = $temps[$urlKey];
+            curl_multi_remove_handle($mh, $ch);
+        }
+
+        curl_multi_close($mh);
+        foreach($fps as $fp) {
+            fclose($fp);
+        }
 
         return $contents;
     }
@@ -83,33 +120,12 @@ class MultiRequest
         }
 
         $headers = array();
-        $this->doRequest($urls, $this->optionsGetHeader, function($urlKey, $url, $ch) use(&$headers) {
-            $time = curl_getinfo($ch, CURLINFO_FILETIME);
-            $length = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
-            if ($length <= 0) {
-                $res = curl_multi_getcontent($ch);
-                if (preg_match('/Content-Length[^\d]+(\d+)/i', $res, $match)) {
-                    $length = $match[1];
-                }
-            }
-            $header = array(
-                'length' => (int)$length,
-                'date' => ($time > 0 ? date('Y-m-d H:i:s', $time) : null)
-            );
-            $headers[$urlKey] = $header;
-        });
 
-        return $headers;
-    }
-
-    private function doRequest(array $urls, array $options, \Closure $callback)
-    {
         $mh = curl_multi_init();
-
         $chs = array();
         foreach ($urls as $urlKey => $url) {
             $ch = curl_init($url);
-            curl_setopt_array($ch, $options);
+            curl_setopt_array($ch, $this->optionsGetHeader);
             curl_multi_add_handle($mh, $ch);
             $chs[$urlKey] = $ch;
         }
@@ -129,10 +145,36 @@ class MultiRequest
                 continue;
             }
 
-            $callback($urlKey, $url, $ch);
+            $time = curl_getinfo($ch, CURLINFO_FILETIME);
+            $length = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+            if ($length <= 0) {
+                $res = curl_multi_getcontent($ch);
+                if (preg_match('/Content-Length[^\d]+(\d+)/i', $res, $match)) {
+                    $length = $match[1];
+                }
+            }
+
+            $headers[$urlKey] = array(
+                'length' => (int)$length,
+                'date' => ($time > 0 ? date('Y-m-d H:i:s', $time) : null)
+            );
+
             curl_multi_remove_handle($mh, $ch);
         }
 
         curl_multi_close($mh);
+
+        return $headers;
+    }
+
+    public function __destruct()
+    {
+        if (!empty($this->tempFiles)) {
+            foreach($this->tempFiles as $file) {
+                if (is_file($file)) {
+                    unlink($file);
+                }
+            }
+        }
     }
 }
