@@ -3,14 +3,14 @@ namespace Kijtra\Scraper\Binder;
 
 class Excel
 {
-    public function getBindInstance($content)
+    public function getBindInstance($tempfile)
     {
-        $tmp = tmpfile();
-        $meta = stream_get_meta_data($tmp);
-        $file = $meta['uri'];
-        file_put_contents($file, $content);
-        $instance = \PHPExcel_IOFactory::load($file);
-        fclose($tmp);
+        if (!is_file($tempfile)) {
+            return;
+        }
+
+        $instance = \PHPExcel_IOFactory::load($tempfile);
+        unlink($tempfile);
         return $instance;
     }
 }

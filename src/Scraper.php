@@ -62,24 +62,23 @@ class Scraper
         $request->setUserAgent($this->config->get('user_agent'));
 
         // TODO: Loggerが有効でも強制的に読み込みたい場合に備えてcontainerを渡すべき？
-        $contents = $request->getContents($urls);
+        $tempfiles = $request->getTemps($urls);
 
         foreach($this->containers as $container) {
             $url = $container->getUrl();
-            if (!empty($contents[$url])) {
+            if (!empty($tempfiles[$url])) {
+                $temp = $tempfiles[$url];
                 $callback = $container->getCallback();
                 if (is_callable($callback)) {
-                    $content = file_get_contents($contents[$url]);
-                    // unlink($contents[$url]);
                     try {
-                        if ($binder = $container->getBinder($content)) {
+                        if ($binder = $container->getBinder($temp)) {
                             $callback = $callback->bindTo($binder);
                         }
                     } catch(\Exception $e) {
                         throw $e;
                     }
 
-                    $callback($content, $contents[$url]);
+                    $callback($temp);
                 }
             }
         }
