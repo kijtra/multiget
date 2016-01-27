@@ -55,13 +55,13 @@ class Urls
         return $this->callback;
     }
 
-    public function getBinder($content)
+    public function getBinder($tempfile)
     {
         if (method_exists($this->binder, 'getBindInstance')) {
-            return $this->binder->getBindInstance($content);
+            return $this->binder->getBindInstance($tempfile);
         } elseif(is_string($this->binder)) {
             $name = '\\'.$this->binder;
-            return new $name($content);
+            return new $name($tempfile);
         }
     }
 

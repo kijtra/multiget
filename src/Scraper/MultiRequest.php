@@ -57,7 +57,7 @@ class MultiRequest
         $optionsGetContent[CURLOPT_USERAGENT] = $ua;
     }
 
-    public function getContents(array $urls)
+    public function getTemps(array $urls)
     {
         if (empty($urls)) {
             return array();
@@ -94,6 +94,7 @@ class MultiRequest
             curl_multi_exec($mh, $running);
         } while($running > 0);
 
+        $files = array();
         foreach($chs as $urlKey => $ch) {
             $url = $urls[$urlKey];
             $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -104,7 +105,7 @@ class MultiRequest
                 continue;
             }
 
-            $contents[$url] = $temps[$urlKey];
+            $files[$url] = $temps[$urlKey];
             curl_multi_remove_handle($mh, $ch);
         }
 
@@ -113,7 +114,7 @@ class MultiRequest
             fclose($fp);
         }
 
-        return $contents;
+        return $files;
     }
 
     private function getHeaders(array $urls)
