@@ -11,7 +11,8 @@ class Url
     public $file;
     public $info = array();
 
-    public $isError = false;
+    public $ceched = false;
+    public $errored = false;
 
     public $success;
     public $error;

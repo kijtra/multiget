@@ -40,6 +40,7 @@ class Multiget
         $handles = array();
         foreach ($this->urls as $hash => $url) {
             if (is_file($url->file) && $now < filemtime($url->file) + Config::$cacheSeconds) {
+                $this->urls[$hash]->cached = true;
                 continue;
             }
             $ch = curl_init($url->url);
@@ -63,7 +64,7 @@ class Multiget
                 $this->urls[$hash]->info = $info;
 
                 if (!preg_match('/\A[23]/', $info['http_code'])) {
-                    $this->urls[$hash]->isError = true;
+                    $this->urls[$hash]->errored = true;
                 }
             }
         }
@@ -84,7 +85,7 @@ class Multiget
     {
         foreach($this->urls as $url) {
             $result = $callback = null;
-            if ($url->isError) {
+            if ($url->errored) {
                 if (!empty($url->error)) {
                     $callback = $url->error;
                 }
@@ -94,6 +95,8 @@ class Multiget
 
             if (!empty($callback)) {
                 $url->info += array(
+                    'error' => $url->errored,
+                    'cached' => $url->cached,
                     'url' => $url->url,
                     'raw_url' => $url->raw,
                     'file' => $url->file,
