@@ -13,14 +13,17 @@ class Multiget
     private $stacks = array();
     private $clean = false;
 
-    public function __construct($storage = null)
+    public function __construct($storage = null, $cache = null)
     {
         Config::setStorage($storage);
+        $this->cache($cache);
     }
 
-    public function clean($flag = true)
+    public function cache($seconds = null)
     {
-        $this->clean = (is_bool($flag) ? $flag : true);
+        if (ctype_digit(strval($seconds))) {
+            Config::setCacheSecond((int)$seconds);
+        }
         return $this;
     }
 
@@ -32,12 +35,11 @@ class Multiget
 
     public function run($callback = null)
     {
+        $now = time();
         $mh = curl_multi_init();
         $handles = array();
         foreach ($this->urls as $hash => $url) {
-            if ($this->clean) {
-                unlink($url->file);
-            } elseif (Config::$storagePath && is_file($url->file)) {
+            if (is_file($url->file) && $now < filemtime($url->file) + Config::$cacheSeconds) {
                 continue;
             }
             $ch = curl_init($url->url);
@@ -103,6 +105,18 @@ class Multiget
             }
 
             yield $result;
+        }
+    }
+
+    public function clean()
+    {
+        if (!empty(Config::$storagePath)) {
+            $reg = preg_quote(Config::$filePrefix).'[a-zA-Z0-9]{32}'.preg_quote(Config::$fileExt);
+            foreach(scandir(Config::$storagePath) as $file) {
+                if (preg_match('/'.$reg.'/', $file)) {
+                    unlink(Config::$storagePath.$file);
+                }
+            }
         }
     }
 }

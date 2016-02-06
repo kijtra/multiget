@@ -18,6 +18,7 @@ trait Config
 
     public static $filePrefix = 'kmg_';
     public static $fileExt = '.txt';
+    public static $cacheSeconds = 600;
     public static $storagePath;
 
     public static function setStorage($dir = null)
@@ -39,6 +40,11 @@ trait Config
     public static function setFileExt($ext)
     {
         self::$fileExt = '.'.trim($ext, '.');
+    }
+
+    public static function setCacheSecond($seconds)
+    {
+        self::$cacheSeconds = $seconds;
     }
 
     public static function setTimeout($seconds)
