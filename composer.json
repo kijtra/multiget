@@ -1,9 +1,9 @@
 {
-    "name": "kijtra/scraper",
-    "description": "Simple Scraping library",
+    "name": "kijtra/multiget",
+    "description": "Simple fetch file library",
     "type": "library",
-    "keywords": ["PHP", "Scraping"],
-    "homepage": "https://github.com/kijtra/scraper",
+    "keywords": ["PHP"],
+    "homepage": "https://github.com/kijtra/multiget",
     "license": "MIT",
     "authors": [
         {
@@ -21,7 +21,7 @@
         "guzzlehttp/guzzle": "^6.1"
     },
     "suggest": {
-        "kijtra/scraper": "Simple Scraping library"
+        "kijtra/multiget": "Simple fetch file library"
     },
     "autoload": {
         "psr-4": {
