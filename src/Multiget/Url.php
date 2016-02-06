@@ -5,10 +5,14 @@ use Kijtra\Multiget\Config;
 
 class Url
 {
+    public $raw;
+    public $url;
+    public $hash;
+    public $file;
+    public $info = array();
 
-    private $raw;
-    private $url;
-    private $hash;
+    public $isError = false;
+
     public $success;
     public $error;
 
@@ -36,22 +40,13 @@ class Url
         }
 
         $this->url = $clean;
-        $this->hash = Config::$filePrefix.md5($clean);
-    }
+        $this->hash = md5($clean);
 
-    public function raw()
-    {
-        return $this->raw;
-    }
-
-    public function url()
-    {
-        return $this->url;
-    }
-
-    public function hash()
-    {
-        return $this->hash;
+        if (Config::$storagePath) {
+            $this->file = Config::$storagePath.Config::$filePrefix.$this->hash.Config::$fileExt;
+        } else {
+            $this->file = tempnam(sys_get_temp_dir(), Config::$filePrefix);
+        }
     }
 
     public function success($closure = null)
