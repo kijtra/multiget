@@ -11,7 +11,7 @@ class Url
     public $file;
     public $info = array();
 
-    public $ceched = false;
+    public $cached = false;
     public $errored = false;
 
     public $success;
