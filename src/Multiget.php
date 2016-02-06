@@ -11,11 +11,17 @@ class Multiget
     use Config;
 
     private $stacks = array();
-    private $curl;
+    private $clean = false;
 
     public function __construct($storage = null)
     {
         Config::setStorage($storage);
+    }
+
+    public function clean($flag = true)
+    {
+        $this->clean = (is_bool($flag) ? $flag : true);
+        return $this;
     }
 
     public function url($url)
@@ -29,7 +35,9 @@ class Multiget
         $mh = curl_multi_init();
         $handles = array();
         foreach ($this->urls as $hash => $url) {
-            if (Config::$storagePath && is_file($url->file)) {
+            if ($this->clean) {
+                unlink($url->file);
+            } elseif (Config::$storagePath && is_file($url->file)) {
                 continue;
             }
             $ch = curl_init($url->url);
