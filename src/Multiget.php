@@ -40,11 +40,12 @@ class Multiget
                 continue;
             }
             $ch = curl_init($url->url);
+            $fp = fopen($url->file, 'w');
             $options = MultigetConfig::$curlOptions;
-            $options[CURLOPT_FILE] = fopen($url->file, 'w');
+            $options[CURLOPT_FILE] = $fp;
             curl_setopt_array($ch, $options);
             curl_multi_add_handle($mh, $ch);
-            $handles[$hash] = $ch;
+            $handles[$hash] = array($fp, $ch);
         }
 
         if (!empty($handles)) {
@@ -53,10 +54,11 @@ class Multiget
                 curl_multi_exec($mh, $running);
             } while($running > 0);
 
-            foreach($handles as $hash => $ch) {
+            foreach($handles as $hash => $arr) {
+                fclose($arr[0]);
                 $url = $this->urls[$hash];
-                $info = curl_getinfo($ch);
-                curl_multi_remove_handle($mh, $ch);
+                $info = curl_getinfo($arr[1]);
+                curl_multi_remove_handle($mh, $arr[1]);
                 $this->urls[$hash]->info = $info;
 
                 if (!preg_match('/\A[23]/', $info['http_code'])) {
