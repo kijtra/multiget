@@ -1,7 +1,7 @@
 <?php
 namespace Kijtra\Multiget;
 
-use Kijtra\Multiget\Config;
+use Kijtra\Multiget\Config as MultigetConfig;
 
 class Url
 {
@@ -43,10 +43,10 @@ class Url
         $this->url = $clean;
         $this->hash = md5($clean);
 
-        if (Config::$storagePath) {
-            $this->file = Config::$storagePath.Config::$filePrefix.$this->hash.Config::$fileExt;
+        if (MultigetConfig::$storagePath) {
+            $this->file = MultigetConfig::$storagePath.MultigetConfig::$filePrefix.$this->hash.MultigetConfig::$fileExt;
         } else {
-            $this->file = tempnam(sys_get_temp_dir(), Config::$filePrefix);
+            $this->file = tempnam(sys_get_temp_dir(), MultigetConfig::$filePrefix);
         }
     }
 

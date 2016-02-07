@@ -1,35 +1,31 @@
 <?php
 namespace Kijtra;
 
-use Kijtra\Multiget\Config;
-use Kijtra\Multiget\Stack;
-use Kijtra\Multiget\Url;
-use Kijtra\Multiget\Curl;
+use Kijtra\Multiget\Config as MultigetConfig;
+use Kijtra\Multiget\Url as MultigetUrl;
 
 class Multiget
 {
-    use Config;
-
     private $stacks = array();
     private $clean = false;
 
     public function __construct($storage = null, $cache = null)
     {
-        Config::setStorage($storage);
+        MultigetConfig::setStorage($storage);
         $this->cache($cache);
     }
 
     public function cache($seconds = null)
     {
         if (ctype_digit(strval($seconds))) {
-            Config::setCacheSecond((int)$seconds);
+            MultigetConfig::setCacheSecond((int)$seconds);
         }
         return $this;
     }
 
     public function url($url)
     {
-        $url = new Url($url);
+        $url = new MultigetUrl($url);
         return $this->urls[$url->hash] = $url;
     }
 
@@ -39,12 +35,12 @@ class Multiget
         $mh = curl_multi_init();
         $handles = array();
         foreach ($this->urls as $hash => $url) {
-            if (is_file($url->file) && $now < filemtime($url->file) + Config::$cacheSeconds) {
+            if (is_file($url->file) && $now < filemtime($url->file) + MultigetConfig::$cacheSeconds) {
                 $this->urls[$hash]->cached = true;
                 continue;
             }
             $ch = curl_init($url->url);
-            $options = Config::$curlOptions;
+            $options = MultigetConfig::$curlOptions;
             $options[CURLOPT_FILE] = fopen($url->file, 'w');
             curl_setopt_array($ch, $options);
             curl_multi_add_handle($mh, $ch);
@@ -113,11 +109,11 @@ class Multiget
 
     public function clean()
     {
-        if (!empty(Config::$storagePath)) {
-            $reg = preg_quote(Config::$filePrefix).'[a-zA-Z0-9]{32}'.preg_quote(Config::$fileExt);
-            foreach(scandir(Config::$storagePath) as $file) {
+        if (!empty(MultigetConfig::$storagePath)) {
+            $reg = preg_quote(MultigetConfig::$filePrefix).'[a-zA-Z0-9]{32}'.preg_quote(MultigetConfig::$fileExt);
+            foreach(scandir(MultigetConfig::$storagePath) as $file) {
                 if (preg_match('/'.$reg.'/', $file)) {
-                    unlink(Config::$storagePath.$file);
+                    unlink(MultigetConfig::$storagePath.$file);
                 }
             }
         }

@@ -1,7 +1,7 @@
 <?php
 namespace Kijtra\Multiget;
 
-trait Config
+class Config
 {
 
     public static $curlOptions = array(
