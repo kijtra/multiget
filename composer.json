@@ -12,13 +12,7 @@
         }
     ],
     "require": {
-        "php": ">=5.3",
-        "ext-sqlite3": "*",
-        "symfony/dom-crawler": "^3.0",
-        "symfony/css-selector": "^3.0",
-        "phpoffice/phpexcel": "^1.8",
-        "smalot/pdfparser": "^0.9.25",
-        "guzzlehttp/guzzle": "^6.1"
+        "php": ">=5.3"
     },
     "suggest": {
         "kijtra/multiget": "Simple fetch file library"
