@@ -101,8 +101,10 @@ class Multiget
                     'length' => filesize($url->file),
                 );
                 $array = new \ArrayObject($url->info, \ArrayObject::ARRAY_AS_PROPS);
-                $callback = $callback->bindTo($array);
-                $result = $callback($url->file);
+                if (!$this->isBinded($callback)) {
+                    $callback = $callback->bindTo($array);
+                }
+                $result = $callback($url->file, $array);
             }
 
             yield $result;
@@ -119,5 +121,16 @@ class Multiget
                 }
             }
         }
+    }
+
+    private function isBinded($closure)
+    {
+        ob_start();
+        var_dump($closure);
+        $dump = ob_get_clean();
+        if (preg_match('/\A[^\n]+[\n\s]+\["this"\][^\(]*?\(([^\)]+)\)/s', $dump, $m)) {
+            return $m[1];
+        }
+        return false;
     }
 }
