@@ -125,11 +125,10 @@ class Multiget
 
     private function isBinded($closure)
     {
-        ob_start();
-        var_dump($closure);
-        $dump = ob_get_clean();
-        if (preg_match('/\A[^\n]+[\n\s]+\["this"\][^\(]*?\(([^\)]+)\)/s', $dump, $m)) {
-            return $m[1];
+        $reflection = new \ReflectionFunction($closure);
+        $bind = $reflection->getClosureThis();
+        if (is_object($bind)) {
+            return $bind;
         }
         return false;
     }
